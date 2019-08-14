@@ -1,0 +1,37 @@
++ register
++ login
+- reset-password
+
+- users
+{
+    id
+    username
+    password
+    email
+    fullname
+    classes: [
+        {
+            classid:
+            status:
+        }
+    ]
+}
+
+- classes
+{
+    id
+    classname
+    teachers: [userid]
+    students: [userid]
+    classwork: [classworkid]
+}
+
+- classworks
+{
+    id
+    title
+    scores: [{
+        userid
+        score
+    }]
+}

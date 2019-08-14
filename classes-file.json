@@ -1,0 +1,62 @@
+[
+    {
+        "classid": 2,
+        "classname": "Makers Konspirasi",
+        "classworks": [
+            "nonton01",
+            "backend01",
+            "quiz01"
+        ],
+        "students": [
+            "udin",
+            "asep",
+            "jack",
+            "jason",
+            "miraz"
+        ],
+        "teachers": [
+            "budi",
+            "ujang"
+        ]
+    },
+    {
+        "classid": 2,
+        "classname": "Makers Konspirasi",
+        "classworks": [
+            "nonton01",
+            "backend01",
+            "quiz01"
+        ],
+        "students": [
+            "udin",
+            "asep",
+            "jack",
+            "jason",
+            "miraz"
+        ],
+        "teachers": [
+            "budi",
+            "ujang"
+        ]
+    },
+    {
+        "classid": 2,
+        "classname": "Makers Konspirasi",
+        "classworks": [
+            "nonton01",
+            "backend01",
+            "quiz01"
+        ],
+        "students": [
+            "udin",
+            "asep",
+            "jack",
+            "jason",
+            "miraz"
+        ],
+        "teachers": [
+            "budi",
+            "ujang"
+        ]
+    }
+]
