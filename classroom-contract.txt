@@ -1,12 +1,19 @@
 + register
 + login
-- 
+ 
+- update user
+- update class
 
+- join class as student (by student)
+- create classwork in class (by teacher)
+- assign classwork (by student)
+- update classwork
+- out class (by student)
 
-===============================
-- users
+==================================
+- user
 {
-    id
+    userid
     username
     password
     email
@@ -14,23 +21,23 @@
     classes: [
         {
             classid:
-            status:
+            status: "student" / "teacher"
         }
     ]
 }
 
-- classes
+- class
 {
-    id
+    classid
     classname
     teachers: [userid]
     students: [userid]
-    classwork: [classworkid]
+    classworks: [classworkid]
 }
 
-- classworks
+- classwork
 {
-    id
+    classworkid
     title
     scores: [{
         userid
