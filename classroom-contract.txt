@@ -1,11 +1,15 @@
 + register
 + login
- 
-- update user
-- update class
++ get user by id
++ update user
 
-- join class as student (by student)
-- create classwork in class (by teacher)
++ get class by id
++ update class
++ join class as student (by student)
+
++ create classwork in class (by teacher)
++ get classwork by id
+
 - assign classwork (by student)
 - update classwork
 - out class (by student)
@@ -18,12 +22,8 @@
     password
     email
     fullname
-    classes: [
-        {
-            classid:
-            status: "student" / "teacher"
-        }
-    ]
+    classes_as_student : []
+    classes_as_teacher : []
 }
 
 - class
@@ -38,9 +38,10 @@
 - classwork
 {
     classworkid
-    title
-    scores: [{
+    class
+    question
+    answers: [{
         userid
-        score
+        answer
     }]
 }
