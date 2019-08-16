@@ -1,17 +1,19 @@
 + register
 + login
 + get user by id
-+ update user
++ update user by id
 
-+ get class by id
-+ update class
++ get class by id (tampilkan fullname semua student dan tampilkan semua data classwork)
++ update class by id (hanya update classname)
 + join class as student (by student)
+- delete class by id(beserta classworknya)
 
 + create classwork in class (by teacher)
 + get classwork by id
++ assign classwork (by student)
++ update classwork (hanya ganti question)
+- delete classwork by id
 
-- assign classwork (by student)
-- update classwork
 - out class (by student)
 
 ==================================
@@ -38,7 +40,7 @@
 - classwork
 {
     classworkid
-    class
+    classid
     question
     answers: [{
         userid
