@@ -94,7 +94,8 @@ def createClass():
     response["data"] = {}
 
     classesData = readFile('./classes-file.json')
-    
+
+    # check class id apakah sudah ada
     classidAlreadyExist = False
     for class_ in classesData:
         if class_["classid"] == body["classid"]:
@@ -119,31 +120,41 @@ def createClass():
 
 @app.route('/class/<int:id>', methods=["GET"])
 def getClass(id):
+    response = {}
+    response["message"] = "Class with classid {} is not found.".format(id)
+    response["data"] = {}
+    
     # nyari kelasnya
     classesData = readFile('./classes-file.json')
     classData = {}
+    classFound = False
     for class_ in classesData:
         if class_["classid"] == id:
             classData = class_
+            response["message"] = "Get Class Success"
+            classFound = True
             break
 
-    classData["students"] = []
-    classData["classworks"] = []
+    if classFound:
+        classData["students"] = []
+        classData["classworks"] = []
 
-    # nyari muridnya
-    usersData = readFile('./users-file.json')
-    for user in usersData:
-        if id in user["classes_as_student"]:
-            classData["students"].append(user["fullname"])
-    
-    
-    # nyari classworknya
-    classworksData = readFile('./classworks-file.json')
-    for classwork in classworksData:
-        if classwork["classid"] == id:
-            classData["classworks"].append(classwork)
+        # nyari muridnya
+        usersData = readFile('./users-file.json')
+        for user in usersData:
+            if id in user["classes_as_student"]:
+                classData["students"].append(user["fullname"])
+        
+        
+        # nyari classworknya
+        classworksData = readFile('./classworks-file.json')
+        for classwork in classworksData:
+            if classwork["classid"] == id:
+                classData["classworks"].append(classwork)
 
-    return jsonify(classData)
+        response["data"] = classData
+
+    return jsonify(response)
 
 @app.route('/classes', methods=["GET"])
 def getAllClasses():
@@ -248,7 +259,7 @@ def getClasswork(id):
 
     return "classwork ID {} is not found".format(id)
 
-@app.route('/classwork/<int:id>', methods=["POST"]) 
+@app.route('/classwork/<int:id>', methods=["POST", "PUT"]) 
 def assignClasswork(id):
     body = request.json
 
@@ -344,15 +355,6 @@ def deleteClasswork(id):
 @app.errorhandler(404)
 def error404(e):
     messages = {
-        "statusCode": 404,
         "message": "URL nya ga ada coy"
     }
-    return jsonify(messages), 500
-
-@app.errorhandler(500)
-def error500(e):
-    messages = {
-        "statusCode": 404,
-        "message": "URL nya ga ada coy"
-    }
-    return jsonify(messages), 500
+    return jsonify(messages), 404
