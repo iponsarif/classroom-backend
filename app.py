@@ -67,6 +67,7 @@ def login():
     return jsonify(response)
 
 @app.route('/users', methods=["GET"])
+@verify
 def getAllUsers():
     usersData = readFile(usersFileLocation)
 
@@ -82,7 +83,7 @@ def getUpdateUser(id):
 
 def getUser(id):
     response = {}
-    response["message"] = "User ID {} is not found".format(id)
+    response["message"] = "User ID {} was not found".format(id)
     response["data"] = {}
 
     usersData = readFile(usersFileLocation)
@@ -115,6 +116,7 @@ def updateUser(id):
     return userData
 
 @app.route('/class', methods=["POST"])
+@verify
 def createClass():
     body = request.json
     body["students"] = []
@@ -158,7 +160,7 @@ def getUpdateClass(id):
 
 def getClass(id):
     response = {}
-    response["message"] = "Class with classid {} is not found.".format(id)
+    response["message"] = "Class with classid {} was not found.".format(id)
     response["data"] = {}
     
     # nyari kelasnya
@@ -284,7 +286,7 @@ def getClasswork(id):
         if classwork["classworkid"] == id:
             return jsonify(classwork)
 
-    return "classwork ID {} is not found".format(id)
+    return "classwork ID {} was not found".format(id)
 
 def assignClasswork(id):
     body = request.json
@@ -385,9 +387,9 @@ def error401(e):
     }
     return jsonify(messages), 401
 
-@app.errorhandler(403)
-def error403(e):
+@app.errorhandler(405)
+def error405(e):
     messages = {
         "message": str(e)
     }
-    return jsonify(messages), 403
+    return jsonify(messages), 405
