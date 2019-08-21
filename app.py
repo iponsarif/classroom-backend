@@ -1,8 +1,8 @@
 from flask import Flask, request, json, jsonify
-import os
 
 from src.utils.crypt import encrypt, decrypt
 from src.utils.file import readFile, writeFile
+from src.utils.authorization import encode, decode, verify
 
 app = Flask(__name__)
 app.config['JSON_SORT_KEYS'] = False
@@ -55,18 +55,31 @@ def login():
     body = request.json
 
     usersData = readFile(usersFileLocation)
-    print(usersData)
     for user in usersData:
         if user["username"] == body["username"]:
             if decrypt(user["password"]) == body["password"]:
-                response["message"] = "Login succes, welcome {}".format(user["fullname"])
+                response["message"] = "Login success, welcome {}".format(user["fullname"])
                 response["data"] = user
+                response["token"] = encode(response["data"]["username"])
                 del response["data"]["password"]
             break
 
     return jsonify(response)
 
-@app.route('/users/<int:id>', methods=["GET"])
+@app.route('/users', methods=["GET"])
+def getAllUsers():
+    usersData = readFile(usersFileLocation)
+
+    return jsonify(usersData)
+
+@app.route('/users/<int:id>', methods=["GET", "PUT"])
+@verify
+def getUpdateUser(id):
+    if request.method == "GET":
+        return getUser(id)
+    elif request.method == "PUT":
+        return updateUser(id)
+
 def getUser(id):
     response = {}
     response["message"] = "User ID {} is not found".format(id)
@@ -80,13 +93,26 @@ def getUser(id):
             response["data"] = user
             break
 
+    
     return jsonify(response)
 
-@app.route('/users', methods=["GET"])
-def getAllUsers():
+def updateUser(id):
+    body = request.json
+
     usersData = readFile(usersFileLocation)
 
-    return jsonify(usersData)
+    for user in usersData:
+        if user["userid"] == id: # kalau user yang mau diupdate ketemu
+            user["username"] = body["username"]
+            user["password"] = body["password"]
+            user["fullname"] = body["fullname"]
+            user["email"] = body["email"]
+            break
+
+    writeFile(usersFileLocation, usersData)
+
+    userData = getUser(id)
+    return userData
 
 @app.route('/class', methods=["POST"])
 def createClass():
@@ -123,7 +149,13 @@ def createClass():
 
     return jsonify(response)
 
-@app.route('/class/<int:id>', methods=["GET"])
+@app.route('/class/<int:id>', methods=["GET", "PUT"])
+def getUpdateClass(id):
+    if request.method == "GET":
+        return getClass(id)
+    elif request.method == "PUT":
+        return updateClass(id)
+
 def getClass(id):
     response = {}
     response["message"] = "Class with classid {} is not found.".format(id)
@@ -160,6 +192,21 @@ def getClass(id):
         response["data"] = classData
 
     return jsonify(response)
+
+def updateClass(id):
+    body = request.json
+
+    classesData = readFile(classesFileLocation)
+
+    for class_ in classesData:
+        if class_["classid"] == id: # kalau user yang mau diupdate ketemu
+            class_["classname"] = body["classname"]
+            break
+
+    writeFile(classesFileLocation, classesData)
+
+    classData = getClass(id)
+    return classData
 
 @app.route('/classes', methods=["GET"])
 def getAllClasses():
@@ -198,41 +245,6 @@ def joinClass():
     thisClass = getClass(body["classid"])
     return thisClass
 
-@app.route('/users/<int:id>', methods=["PUT"])
-def updateUser(id):
-    body = request.json
-
-    usersData = readFile(usersFileLocation)
-
-    for user in usersData:
-        if user["userid"] == id: # kalau user yang mau diupdate ketemu
-            user["username"] = body["username"]
-            user["password"] = body["password"]
-            user["fullname"] = body["fullname"]
-            user["email"] = body["email"]
-            break
-
-    writeFile(usersFileLocation, usersData)
-
-    userData = getUser(id)
-    return userData
-
-@app.route('/class/<int:id>', methods=["PUT"])
-def updateClass(id):
-    body = request.json
-
-    classesData = readFile(classesFileLocation)
-
-    for class_ in classesData:
-        if class_["classid"] == id: # kalau user yang mau diupdate ketemu
-            class_["classname"] = body["classname"]
-            break
-
-    writeFile(classesFileLocation, classesData)
-
-    classData = getClass(id)
-    return classData
-
 @app.route('/classwork', methods=["POST"])
 def createClasswork():
     classworksData = readFile(classworksFileLocation)
@@ -254,7 +266,17 @@ def createClasswork():
 
     return jsonify(body)
 
-@app.route('/classwork/<int:id>', methods=["GET"])
+@app.route('/classwork/<int:id>', methods=["GET", "POST", "PUT", "DELETE"])
+def getAssignUpdateDeleteClasswork(id):
+    if request.method == "GET":
+        return getClasswork(id)
+    elif request.method == "POST":
+        return assignClasswork(id)
+    elif request.method == "PUT":
+        return updateClasswork(id)
+    elif request.method == "DELETE":
+        return deleteClasswork(id)
+
 def getClasswork(id):
     classworksData = readFile(classworksFileLocation)
 
@@ -264,7 +286,6 @@ def getClasswork(id):
 
     return "classwork ID {} is not found".format(id)
 
-@app.route('/classwork/<int:id>', methods=["POST", "PUT"]) 
 def assignClasswork(id):
     body = request.json
 
@@ -288,7 +309,6 @@ def assignClasswork(id):
     return thisClasswork 
 
 # update classwork hanya ganti question
-@app.route('/classwork/<int:id>', methods=["PUT"])
 def updateClasswork(id):
     body = request.json
 
@@ -302,6 +322,27 @@ def updateClasswork(id):
 
     thisClasswork = getClasswork(id)
     return thisClasswork 
+
+def deleteClasswork(id):
+    ## delete di file classwork 
+    classworksData = readFile(classworksFileLocation)
+    for i in range(len(classworksData)):
+        if classworksData[i]["classworkid"] == id:
+            del classworksData[i] # hapus classwork
+            break
+
+    writeFile(classworksFileLocation, classworksData)
+
+    ## delete classwork di class
+    classesData = readFile('./classes-flie.json')
+    for class_ in classesData:
+        if id in class_["classworks"]:
+            class_["classworks"].remove(id)
+            break
+
+    writeFile(classesFileLocation, classesData)
+
+    return "Classwork ID {} has been deleted".format(id)
 
 @app.route('/class/<int:id>/out', methods=["POST"])
 def outFromClass(id):
@@ -330,36 +371,23 @@ def outFromClass(id):
     thisUser = getUser(body["userid"])
     return thisUser
 
-# @app.route('/class/<int:id>', methods=["DELETE"])
-# def deleteClass(id):
-#     classesData = readFile(classesFileLocation)
-
-@app.route('/classwork/<int:id>', methods=["DELETE"])
-def deleteClasswork(id):
-    ## delete di file classwork 
-    classworksData = readFile(classworksFileLocation)
-    for i in range(len(classworksData)):
-        if classworksData[i]["classworkid"] == id:
-            del classworksData[i] # hapus classwork
-            break
-
-    writeFile(classworksFileLocation, classworksData)
-
-    ## delete classwork di class
-    classesData = readFile('./classes-flie.json')
-    print(classesData)
-    for class_ in classesData:
-        if id in class_["classworks"]:
-            class_["classworks"].remove(id)
-            break
-
-    writeFile(classesFileLocation, classesData)
-
-    return "Classwork ID {} has been deleted".format(id)
-
 @app.errorhandler(404)
 def error404(e):
     messages = {
-        "message": "URL nya ga ada coy"
+        "message": "The requested URL {} was not found in this server".format(request.path)
     }
     return jsonify(messages), 404
+
+@app.errorhandler(401)
+def error401(e):
+    messages = {
+        "message": "Token Invalid."
+    }
+    return jsonify(messages), 401
+
+@app.errorhandler(403)
+def error403(e):
+    messages = {
+        "message": str(e)
+    }
+    return jsonify(messages), 403
